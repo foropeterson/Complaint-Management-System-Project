@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaint Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: auto;
+            padding: 30px;
+            background-color: #ffffff;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+        }
+
+        section {
+            margin-bottom: 30px;
+        }
+
+        h1, h2 {
+            color: #343a40;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        input[type="file"] {
+            padding: 6px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .notification {
+            padding: 15px;
+            border-radius: 8px;
+            color: #fff;
+            text-align: center;
+            display: none;
+            font-size: 16px;
+        }
+
+        .notification.success {
+            background-color: #28a745;
+        }
+
+        .notification.error {
+            background-color: #dc3545;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+            transition: background-color 0.3s ease;
+        }
+
+        li:hover {
+            background-color: #e9ecef;
+        }
+
+        .complaint-details {
+            margin-bottom: 10px;
+        }
+
+        .attachment-link {
+            display: block;
+            margin-top: 10px;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .attachment-link:hover {
+            text-decoration: underline;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            align-self: flex-end;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            button {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            input, textarea, select {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Complaint Management System</h1>
+        </header>
+        
+        <section id="notifications">
+            <div class="notification success" id="successNotification">Complaint submitted successfully!</div>
+            <div class="notification error" id="errorNotification">Please fill in all fields.</div>
+        </section>
+        
+        <section id="complaintFormSection">
+            <form id="complaintForm">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+
+                <label for="category">Category:</label>
+                <select id="category" name="category" required>
+                    <option value="" disabled selected>Select a category</option>
+                    <option value="billing">Billing Issues</option>
+                    <option value="service">Service Problems</option>
+                    <option value="other">Other</option>
+                </select>
+
+                <label for="complaint">Complaint:</label>
+                <textarea id="complaint" name="complaint" rows="4" required></textarea>
+
+                <label for="attachment">Attach File:</label>
+                <input type="file" id="attachment" name="attachment">
+
+                <button type="submit">Submit Complaint</button>
+            </form>
+        </section>
+
+        <section id="complaintListSection">
+            <h2>Submitted Complaints</h2>
+            <ul id="complaintList"></ul>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const complaintForm = document.getElementById('complaintForm');
+            const complaintList = document.getElementById('complaintList');
+            const successNotification = document.getElementById('successNotification');
+            const errorNotification = document.getElementById('errorNotification');
+
+            // Load complaints from localStorage
+            function loadComplaints() {
+                const complaints = JSON.parse(localStorage.getItem('complaints')) || [];
+                complaintList.innerHTML = '';
+                complaints.forEach((complaint, index) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div class="complaint-details">
+                            <strong>${complaint.name}</strong> (${complaint.email})<br>
+                            Category: ${complaint.category}<br>
+                            <p>${complaint.complaint}</p>
+                            ${complaint.attachment ? `<a class="attachment-link" href="${complaint.attachment}" target="_blank">View Attachment</a>` : ''}
+                        </div>
+                        <button class="delete-btn" data-index="${index}">Delete</button>
+                    `;
+                    complaintList.appendChild(li);
+                });
+                attachDeleteHandlers();
+            }
+
+            // Save complaint to localStorage
+            function saveComplaint(name, email, category, complaint, attachment) {
+                const complaints = JSON.parse(localStorage.getItem('complaints')) || [];
+                complaints.push({ name, email, category, complaint, attachment });
+                localStorage.setItem('complaints', JSON.stringify(complaints));
+                loadComplaints();
+                showNotification(successNotification);
+            }
+
+            // Show notification
+            function showNotification(notification) {
+                notification.style.display = 'block';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+
+            // Attach delete handlers
+            function attachDeleteHandlers() {
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const index = e.target.getAttribute('data-index');
+                        deleteComplaint(index);
+                    });
+                });
+            }
+
+            // Delete complaint
+            function deleteComplaint(index) {
+                const complaints = JSON.parse(localStorage.getItem('complaints')) || [];
+                complaints.splice(index, 1);
+                localStorage.setItem('complaints', JSON.stringify(complaints));
+                loadComplaints();
+            }
+
+            complaintForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const category = document.getElementById('category').value;
+                const complaint = document.getElementById('complaint').value.trim();
+                const attachment = document.getElementById('attachment').files[0] ? URL.createObjectURL(document.getElementById('attachment').files[0]) : '';
+
+                if (name && email && category && complaint) {
+                    saveComplaint(name, email, category, complaint, attachment);
+                    complaintForm.reset();
+                } else {
+                    showNotification(errorNotification);
+                }
+            });
+
+            // Initial load
+            loadComplaints();
+        });
+    </script>
+</body>
+</html>
